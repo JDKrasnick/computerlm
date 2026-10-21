@@ -1,0 +1,17 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "tight-leading",
+        "value": "*",
+        "files": [
+          "architecture-decisions.html"
+        ],
+        "createdAt": "2026-10-21T14:25:06.539Z",
+        "reason": "Agent review: detector reports 0.14x, but body uses unitless 1.7 and small text uses 1.6-1.7; 1.08 and 1.24 are intentional display-heading styles in the archived brief. Preserve the existing design."
+      }
+    ]
+  }
+}
