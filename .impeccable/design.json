@@ -1,0 +1,113 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-21T14:23:56.503Z",
+  "title": "Design System: ComputerLM",
+  "extensions": {
+    "shadows": [],
+    "motion": [
+      {
+        "name": "anchor-scroll",
+        "value": "smooth",
+        "purpose": "Anchor navigation; becomes auto under prefers-reduced-motion: reduce. The native disclosure has no custom animation."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "compact",
+        "value": "900px"
+      },
+      {
+        "name": "stacked",
+        "value": "700px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Print button",
+      "kind": "button",
+      "refersTo": "print-button",
+      "description": "Masthead action that invokes the browser print dialog in the page.",
+      "html": "<button type=\"button\" class=\"ds-print\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" aria-hidden=\"true\"><path d=\"M6 8V3h12v5M6 17H3V8h18v9h-3M6 13h12v8H6z\"/><path d=\"M17 10h1\"/></svg>Print / PDF</button>",
+      "css": ".ds-print{display:inline-flex;gap:8px;align-items:center;background:none;border:0;color:var(--ink,#183c32);font:650 12px/1.7 Manrope,Arial,sans-serif;padding:8px 0;min-height:44px;cursor:pointer}.ds-print svg{width:17px;height:17px}.ds-print:focus-visible{outline:3px solid var(--accent,#315d42);outline-offset:5px}"
+    },
+    {
+      "name": "Contents navigation",
+      "kind": "nav",
+      "refersTo": "contents",
+      "description": "Wrapping internal anchors bounded by flat rules.",
+      "html": "<nav class=\"ds-contents\" aria-label=\"Brief contents\"><a href=\"#background\">VLM basics</a><a href=\"#architecture\">Inside the model</a><a href=\"#runtime\">During use</a><a href=\"#reading\">Existing research</a><a href=\"#evaluation\">Expected gains</a></nav>",
+      "css": ".ds-contents{display:flex;gap:28px;flex-wrap:wrap;padding:17px 0;border-top:1px solid var(--rule,#cbd6cd);border-bottom:1px solid var(--rule,#cbd6cd);font:650 13px/1.7 Manrope,Arial,sans-serif}.ds-contents a{color:var(--accent,#315d42);text-decoration:none}.ds-contents a:hover{color:var(--ink,#183c32)}.ds-contents a:focus-visible{outline:3px solid var(--accent,#315d42);outline-offset:5px}@media(max-width:700px){.ds-contents{gap:12px 21px;font-size:12px;padding:15px 0}}"
+    },
+    {
+      "name": "Example panel",
+      "kind": "card",
+      "refersTo": "example",
+      "description": "Sage teaching example with compact label and value rows.",
+      "html": "<figure class=\"ds-example\"><h3>A simple example</h3><div class=\"ds-example-row\"><span>Now</span><div>A document is open.</div></div><div class=\"ds-example-row\"><span>Action</span><div><strong>Click Export.</strong></div></div><div class=\"ds-example-row\"><span>Prediction</span><div><strong>An export dialog opens.</strong></div></div></figure>",
+      "css": ".ds-example{margin:0;background:var(--sage,#e5ede5);border-radius:var(--radius,14px);padding:26px 30px;color:var(--text,#293c35);font:14px/1.7 Manrope,Arial,sans-serif}.ds-example h3{margin:0 0 15px;font-size:1.06rem;line-height:1.4;font-weight:750;color:var(--ink,#183c32)}.ds-example-row{display:grid;grid-template-columns:72px 1fr;gap:10px;padding:8px 0}.ds-example-row span{font-size:12px;color:var(--muted,#52675c)}.ds-example strong{font-weight:750}@media(max-width:700px){.ds-example{padding:23px}}"
+    },
+    {
+      "name": "Diagram node",
+      "kind": "custom",
+      "refersTo": "node",
+      "description": "Default white network node; downward SVG arrows connect the static sequences.",
+      "html": "<div class=\"ds-node\"><strong>Vision encoder + connector</strong><span>Image features enter the language model</span></div>",
+      "css": ".ds-node{padding:17px 20px;background:var(--white,#fff);border-radius:12px;font-family:Manrope,Arial,sans-serif;}.ds-node strong{display:block;font-size:15px;line-height:1.4;font-weight:750;color:var(--ink,#183c32)}.ds-node span{display:block;font-size:12px;line-height:1.6;color:var(--muted,#52675c);margin-top:5px}@media(max-width:700px){.ds-node{padding:16px 18px}}"
+    },
+    {
+      "name": "Backbone node",
+      "kind": "custom",
+      "refersTo": "node-backbone",
+      "description": "Forest-filled shared backbone in the static network and runtime comparisons.",
+      "html": "<div class=\"ds-backbone\"><strong>Shared VLM backbone</strong><span>Processes vision, text, and history</span></div>",
+      "css": ".ds-backbone{padding:17px 20px;background:var(--ink,#183c32);border-radius:12px;font-family:Manrope,Arial,sans-serif;}.ds-backbone strong{display:block;font-size:15px;line-height:1.4;font-weight:750;color:var(--white,#fff)}.ds-backbone span{display:block;font-size:12px;line-height:1.6;color:var(--white,#fff);margin-top:5px}@media(max-width:700px){.ds-backbone{padding:16px 18px}}"
+    },
+    {
+      "name": "Prediction node",
+      "kind": "custom",
+      "refersTo": "node-prediction",
+      "description": "Lime auxiliary prediction branch with a dashed accent border; paired with an action branch.",
+      "html": "<div class=\"ds-prediction\"><strong>Future-state head</strong><span>Predict an action’s consequence</span></div>",
+      "css": ".ds-prediction{padding:16px;background:var(--lime,#d6eb9a);border:1px dashed var(--accent,#315d42);border-radius:12px;min-height:133px;font-family:Manrope,Arial,sans-serif}.ds-prediction strong{display:block;font-size:14px;line-height:1.4;font-weight:750;color:var(--ink,#183c32)}.ds-prediction span{display:block;font-size:12px;line-height:1.6;color:var(--ink,#183c32);margin-top:5px}@media(max-width:900px){.ds-prediction{padding:13px 10px}}@media(max-width:700px){.ds-prediction{padding:15px 12px}}"
+    },
+    {
+      "name": "Speculative-decoding disclosure",
+      "kind": "custom",
+      "refersTo": "disclosure-summary",
+      "description": "Native disclosure explains the distinction between future tokens and future environment states.",
+      "html": "<details class=\"ds-disclosure\"><summary>How this relates to speculative decoding</summary><p><a href=\"https://arxiv.org/abs/2401.10774\">Medusa</a> predicts several future <em>tokens</em> and verifies them to speed generation. Here the target is a future <em>environment state</em>. The analogy motivates the idea, but it brings no automatic decoding speedup or guarantee that a click will succeed.</p></details>",
+      "css": ".ds-disclosure{margin-top:22px;border-top:1px solid var(--rule,#cbd6cd);padding-top:14px;font:13px/1.7 Manrope,Arial,sans-serif;color:var(--text,#293c35)}.ds-disclosure summary{cursor:pointer;font-weight:700;color:var(--ink,#183c32);padding:4px 0;list-style-position:outside;margin-left:18px;min-height:36px}.ds-disclosure p{margin:0;padding:12px 0 0 18px;max-width:70ch}.ds-disclosure a{color:var(--accent,#315d42);text-underline-offset:4px;text-decoration-thickness:1px}.ds-disclosure a:hover{color:var(--ink,#183c32);text-decoration-thickness:2px}.ds-disclosure summary:focus-visible,.ds-disclosure a:focus-visible{outline:3px solid var(--accent,#315d42);outline-offset:5px}"
+    },
+    {
+      "name": "Comparison table",
+      "kind": "custom",
+      "refersTo": "comparison-table-cell",
+      "description": "Shared table grammar; labeled cells become stacked explanatory rows at 700px.",
+      "html": "<table class=\"ds-comparison\"><thead><tr><th scope=\"col\">Goal</th><th scope=\"col\">Possible mechanism</th><th scope=\"col\">Practical limit</th></tr></thead><tbody><tr><th scope=\"row\">Better task success</th><td data-label=\"Mechanism\">More useful features for choosing actions.</td><td data-label=\"Limit\">Prediction may fail to improve action quality.</td></tr></tbody></table>",
+      "css": ".ds-comparison{width:100%;border-collapse:collapse;text-align:left;font:14px/1.7 Manrope,Arial,sans-serif;color:var(--text,#293c35)}.ds-comparison th,.ds-comparison td{padding:16px 20px;border-bottom:1px solid var(--rule,#cbd6cd);vertical-align:top}.ds-comparison th:first-child,.ds-comparison td:first-child{padding-left:0}.ds-comparison th:last-child,.ds-comparison td:last-child{padding-right:0}.ds-comparison thead th{font-size:12px;color:var(--muted,#52675c);font-weight:650;padding-top:0}.ds-comparison tbody th{width:26%;font-weight:750;color:var(--ink,#183c32)}.ds-comparison td{width:37%}.ds-comparison td:last-child{color:var(--muted,#52675c)}.ds-comparison tr:last-child>*{border-bottom:0}@media(max-width:700px){.ds-comparison,.ds-comparison tbody,.ds-comparison tr,.ds-comparison th,.ds-comparison td{display:block;width:100%!important}.ds-comparison thead{display:none}.ds-comparison tr{border-bottom:1px solid var(--rule,#cbd6cd);padding:16px 0}.ds-comparison tr:last-child{border-bottom:0}.ds-comparison th,.ds-comparison td{border:0;padding:4px 0;font-size:13px}.ds-comparison tbody th{font-size:16px}.ds-comparison td[data-label]::before{content:attr(data-label) \": \";font-weight:750}}"
+    }
+  ],
+  "narrative": {
+    "northStar": "Scientific teaching plate",
+    "overview": "A daylight research brief uses cool paper, forest ink, generous headings, and flat dividers. Two static diagrams compare internal network changes and runtime model calls, with alternatives shown side by side. Short explanations and comparison tables support the diagrams.\n\nThis is the visual system implemented in `index.html`, extracted after a SHIP finish review with no material findings. It presents a research proposal with clearly stated hypotheses and no measured results.\n\nThese are historical HTML research briefs. Current model decisions are documented in docs/architecture-v1.md.",
+    "keyCharacteristics": [
+      "Manrope typography with compact, heavy headings.",
+      "Sage diagram fields, white nodes, and forest emphasis.",
+      "Flat section rules and restrained rounded surfaces.",
+      "Responsive reading layout with separate network and runtime comparisons."
+    ],
+    "rules": [],
+    "dos": [
+      "Do use the extracted palette and Manrope hierarchy.",
+      "Do preserve the separate static network and runtime comparisons and their explanatory captions.",
+      "Do retain visible keyboard focus, reduced-motion behavior, and print readability.",
+      "Do keep hypotheses and expected benefits distinct from measured results."
+    ],
+    "donts": [
+      "Don't add shadows, gradients, or illustrative stock imagery to this brief.",
+      "Don't remove the embedded font's copyright or OFL license.",
+      "Don't introduce performance figures or novelty claims unsupported by evidence."
+    ]
+  }
+}
