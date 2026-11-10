@@ -21,7 +21,7 @@
 \titlespacing*{\subsection}{0pt}{7pt}{3pt}
 \pagestyle{fancy}\fancyhf{}
 \fancyhead[L]{\small\color{ink}ComputerLM}
-\fancyhead[R]{\small Research proposal / Draft 0.8}
+\fancyhead[R]{\small Research proposal / Draft 0.9}
 \fancyfoot[L]{\footnotesize J.D. Krasnick}
 \fancyfoot[R]{\footnotesize\thepage}
 \setlength{\headheight}{14pt}
@@ -36,7 +36,7 @@
 \vspace{4pt}
 J.D. Krasnick\hfill\href{https://github.com/JDKrasnick/computerlm}{github.com/JDKrasnick/computerlm}
 
-\textbf{Summary.} ComputerLM combines a small recurrent controller with a deeper reasoning path that continues while the controller acts. Both observe the interface and maintain living task state. Slow reasoning communicates subgoals through learned latent vectors; fast control grounds them into actions and predicts short-term consequences. The initial objective is easy and medium browser and desktop workflows at matched accuracy, prioritizing faster completion and then lower cost. The integrated model remains untrained; these gains are hypotheses to test.
+\textbf{Summary.} ComputerLM combines a small recurrent controller with a deeper reasoning path that continues while the controller acts. Both observe the interface and maintain living task state. Slow reasoning communicates subgoals through learned latent vectors; fast control grounds them into actions and predicts short-term consequences. The objective is to match the strongest available GUI systems on easy and medium browser/desktop workflows, prioritizing faster completion and then lower cost. The integrated model remains untrained; these gains are hypotheses to test.
 
 \section{Proposed architecture}
 Many workflows contain a planning decision followed by routine interactions. ComputerLM aims to reuse that decision, carry progress forward, and overlap useful reasoning with execution and application delays.
@@ -56,24 +56,24 @@ Many workflows contain a planning decision followed by routine interactions. Com
 \end{tikzpicture}
 \end{figure}
 
-\textbf{Fast path.} A custom recurrent controller combines fresh visual features, action history, persistent state, and slow guidance. Only this path executes clicks, typing, scrolling, or waits. It also makes bounded action-conditioned predictions to prepare likely next steps. Actual observations establish whether an action had its intended effect.
+\textbf{Fast path.} A custom recurrent controller combines fresh visual features, action history, persistent state, and slow guidance. Only this path executes human-style GUI actions: clicking, typing, scrolling, dragging, keyboard shortcuts, or waits. The initial interface excludes shell, direct-file, DOM, and API shortcuts. Fast control predicts bounded action consequences; actual observations establish their effects.
 
-\textbf{Slow path.} The development direction adapts pretrained Qwen3.8-27B into an input encoder, shared recurrent middle blocks, and guidance readout. It reasons continuously during an active task, including while fast control acts or waits. Guidance expresses dependencies such as \emph{find X to obtain Y} in latent space. A trained interface makes those vectors useful to the controller; slow reasoning cannot directly act on the computer.
+\textbf{Slow path.} Adapt a suitably sized pretrained VLM into an input encoder, shared recurrent middle blocks, and guidance readout. It reasons continuously during an active task, including while fast control acts or waits. Guidance expresses dependencies such as \emph{find X to obtain Y} in latent space. A trained interface makes those vectors useful to the controller; slow reasoning cannot directly act on the computer. The checkpoint and size remain open.
 
 \textbf{Perception and state.} Begin with native VLM screen encoding plus available accessibility/UI text. Cache identical encoder inputs under matching settings; fully encode changed screens. Recurrent state survives interactions and pause/resume, then resets between unrelated tasks. Preserve exact instructions, text payloads, action acknowledgements, and evidence references alongside compressed state. Action embeddings report operations and arguments; they do not represent every possible environment state.
 
 \clearpage
 \section{Design rationale and development}
-Existing work supports individual components. Recurrent Memory Transformer learns memory carried between input segments~\cite{rmt}. Fast-in-Slow and DuoCore-FS provide robotics precedents for learned fast/slow cooperation and asynchronous latent guidance~\cite{fastinslow,duocore}. In GUI research, iSHIFT uses latent deliberation and conditionally requests more visual processing~\cite{ishift}; GUI-JEPA studies lightweight action scoring in learned visual space~\cite{guijepa}. These differ from ComputerLM's continuously active slow reasoning alongside recurrent fast control. Native VLM perception has a detailed precedent in Qwen2.5-VL~\cite{qwenvision}.
+Recurrent Memory Transformer carries learned memory between input segments~\cite{rmt}. Fast-in-Slow and DuoCore-FS provide robotics precedents for fast/slow cooperation and asynchronous latent guidance~\cite{fastinslow,duocore}. In GUI research, iSHIFT conditionally requests more visual processing after latent deliberation~\cite{ishift}; GUI-JEPA studies lightweight latent action scoring~\cite{guijepa}. These support components, not the complete architecture. Native VLM perception has a detailed precedent in Qwen2.5-VL~\cite{qwenvision}.
 
-\textbf{Fresh evidence.} Screens become available to both paths immediately. Compare reading updates at the next recurrent cycle with trained adapters at early, middle, or late block boundaries. Both preserve task state. Measure incorporation delay, constraint retention, and recovery when new evidence contradicts earlier guidance.
+\textbf{Fresh evidence.} Screens become available to both paths immediately. Compare next-cycle intake with trained early/middle/late adapters, preserving state and measuring reaction delay and recovery. Initial episodes follow one instruction; later live steering can revise goal state through the slow update interface and propagate revised guidance.
 
 \textbf{Adaptive execution.} A central ablation compares immediate highest-scoring action selection with learned deferral for additional fast computation or fresher slow guidance. Prediction supports this decision; a prediction-disabled control tests its separate contribution. Both variants retain continuous slow reasoning and ordinary waits for pending UI operations. Action probability alone is not assumed to measure correctness.
 
-\textbf{Local runtime.} Initially target one GPU with CPU support. Custom software may be needed to route observations, maintain recurrent state, exchange guidance and actions, and schedule short fast updates alongside slow work. Profile memory fit, slow progress, and fast tail latency. Hardware-supported partitioning is an option to test, not an assumed requirement. Approximate visual reuse remains optional future work.
+\textbf{Local constraints.} Prefer Apple-Silicon-class inference with compact models, bounded state, and realistic unified-memory use. Initially target one GPU with CPU support. Custom scheduling may be needed; profile fit, slow progress, and fast tail latency. Exact hardware and serving software remain open. Approximate visual reuse is optional future work.
 
 \subsection{Staged training proposal}
-The training recipe remains open. Begin with a small diagnostic before adapting the full backbone:
+Training hardware and compute/data budgets remain unspecified. Begin with a small diagnostic:
 \begin{enumerate}
 \item \textbf{Preserve pretrained capability.} Establish one-pass parity and stable recurrent adaptation. Initially retain native perception; select frozen weights, adapters, and recurrent depth from development evidence.
 \item \textbf{Learn execution and guidance together.} Train the controller and latent interface on chronological screen--action--outcome sequences. Include persistent memory, exact text access, failed actions, recovery, and delayed or missing guidance.
@@ -82,7 +82,7 @@ The training recipe remains open. Begin with a small diagnostic before adapting 
 Training uses only information available at each decision. Keep held-out outputs and corrections outside training. Memory across observations and repeated internal reasoning depth are separate: the latter adds computation even when no thinking text is generated.
 
 \section{Evaluation objective}
-Use a balanced browser/desktop suite with fixed easy/medium difficulty criteria. Compare an optimized sequential VLM, a small specialized executor, an external-state baseline, and matched fast/slow ablations. Give every system the same declared observations, tools, task resets, and initial GPU resource budget. CUA-Speedrun motivates measuring complete trajectories rather than action latency alone~\cite{speedrun}.
+Use a balanced browser/desktop suite with fixed easy/medium criteria. Select the strongest available GUI references before testing; retain same-backbone sequential and component controls. Match observations, GUI actions, and resets. Equalize hardware for local controls; disclose hosted-reference hardware and network differences. Measure complete trajectories rather than action latency alone~\cite{speedrun}.
 
 \clearpage
 \section{Evidence required and remaining decisions}
@@ -92,7 +92,7 @@ Use a balanced browser/desktop suite with fixed easy/medium difficulty criteria.
 
 Qualitative grading follows the repository contract: ChatGPT through the signed-in Codex CLI, after each episode. Judge latency is separate, judge failure stops the batch, and favourable qualitative scores cannot override a failed exact outcome check.
 
-\textbf{Open design questions.} The proposal leaves room for experiments on:
+\textbf{Open decisions.} Text-composition responsibility and completion/stall reporting remain behaviour choices. Development experiments address:
 \begin{itemize}
 \item \textbf{Intake and memory:} cycle length, adapter location, state capacity, and exact-record access.
 \item \textbf{Learned interfaces:} guidance capacity, fusion, publication/compatibility checks, and whether action embeddings retain all required arguments.
