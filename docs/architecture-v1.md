@@ -1,23 +1,24 @@
 # ComputerLM v1 architecture
 
-Status: agreed research direction through 21 October 2026; not an implemented or validated model.
+Status: public design consolidated 10 November 2026 from the current development proposal. A cache-free text-core prototype exists in ongoing development; the full integrated trained model and performance gains remain unvalidated. This document specifies intended behavior, not completed capabilities.
 
 ## Objective and decisions
 
-Solve easy and medium computer tasks as quickly as possible while preserving strong task success. The primary comparison is end-to-end completion time at a matched success rate. Large-path computation may run most of the time; it must not starve the action path.
+Complete easy and medium computer tasks faster and more cheaply while preserving comparable task success. Compare end-to-end completion time, total computation and cost at matched success. Large-path computation may run throughout an active task, but its cost must be included and it must not starve the action path. Lower latency alone does not establish lower computation. See the [research proposal](research-proposal.md) for the motivation and evaluation framing.
 
 Accepted decisions:
 
 - One integrated model with independently executable fast and slow paths and learned communication.
 - Persistent state and short action-conditioned prediction are part of the model from the start.
-- Option B for the slow path: preserve a pretrained VLM backbone and add learned state, memory, and guidance interfaces.
+- Slow-path backbone: adapt Qwen3.8-27B with an encoder, shared recurrent middle blocks and a decoder/readout. This supersedes the earlier input/output-interface-only implementation choice. Preserve pretrained weights where possible, then train latent recurrence and task/state/memory/guidance interfaces.
 - The fast path owns the latest live UI belief state and updates at interaction speed.
 - The slow path has persistent reasoning memory and consumes new events at defined computation boundaries.
 - Routine actions proceed using the latest compatible guidance. Uncertainty or unexpected changes can trigger a wait.
-- Start with short, normally one-transition lookahead. Deep branching search is outside the initial scope.
-- Recurrence across time is required. Replacing the backbone with shared recurrent-depth layers is not yet a decision.
+- Guidance covers the current subgoal and bounded contingencies; explicit deep branching search remains outside the initial scope.
+- The slow path uses latent depth updates without generated thinking tokens and computes throughout an active task. Publishing guidance or advising the executor to wait does not halt it. The harness or a model completion declaration controls task-level stopping.
+- Initial memory persists within one task, including pause/resume, and resets for unrelated tasks. Later live observations use screenshots plus available UI/accessibility text. Fast-path implementation is deferred while the slow core is tested.
 
-Prediction quality, success gains, latency gains, and architectural novelty remain hypotheses to test. This is analogous to speculative execution but does not inherit the exact verification guarantees of speculative token decoding.
+Prediction quality, success gains, latency gains, compute/cost savings, and architectural novelty remain hypotheses to test. This is analogous to speculative execution but does not inherit the exact verification guarantees of speculative token decoding.
 
 ## High-level view
 
@@ -91,7 +92,7 @@ The predictor is used twice: before selection to compare likely consequences, an
 
 ## State and ownership
 
-State is learned, but runtime metadata and exact values need not be latent. The following are logical responsibilities, not a fixed tensor schema or guaranteed semantic partition of hidden dimensions.
+State is learned, with explicit records of confirmed goals, constraints, exact values and evidence references alongside the learned representations. Keep these records synchronized through source-linked updates; explicit bookkeeping does not replace latent reasoning. This stage 3 choice was confirmed on 25 October 2026. The following are logical responsibilities, not a fixed tensor schema or guaranteed semantic partition of hidden dimensions.
 
 | State | Writer | Readers |
 | --- | --- | --- |
@@ -103,15 +104,15 @@ State is learned, but runtime metadata and exact values need not be latent. The 
 | Guidance with source version and applicability | Slow output interface plus compatibility checks | Fast path |
 | Exact text, filenames, URLs, and relevant evidence | Input/observation records | Both paths through retrieval/copy interfaces |
 
-Use detailed recent context alongside compressed older memory. Retain access to original task instructions because compact guidance can omit important constraints.
+Use bounded detailed recent context alongside learned memory, with retrieval access to older evidence in the full within-task episode log. Do not resend the entire growing history on each refresh. Retain access to original task instructions because compact guidance can omit important constraints. This access policy was confirmed on 25 October 2026; context budgets and retrieval mechanics remain implementation choices.
 
 ## Recurrence and always-on operation
 
 Conceptually, the fast update is `previous state + observation + last action -> updated state`. The slow update is `previous memory + state snapshot + task -> updated memory + guidance`.
 
-Both carry learned state across time. Visual encoders and output heads can remain feedforward. Repeatedly applying shared layers within one inference is a separate recurrent-depth design choice. A standard KV cache alone is not the proposed learned, editable task-state memory.
+Both carry learned state across time. The selected slow path also repeatedly applies shared middle layers to continuous hidden representations. Visual encoders and output heads can remain feedforward. Native KV/Gated DeltaNet caches are not the proposed semantic task-state memory. The first reference disables caches between depth passes; reuse requires separate correctness evidence.
 
-Always-on means a resident model session with persistent state and an event-driven reasoning loop. The slow path performs bounded cycles and can continue working while the fast path acts. It can also wait without losing state when further reasoning would not help. Weights remain fixed during normal inference.
+Always-on means continuous slow computation throughout an active task, with persistent state and events consumed at the next completed latent step. Publication is adaptive and does not end deliberation. An executor wait is distinct from an explicit harness pause/cancel or the model declaring completion. Explicit pause/resume preserves task state. Weights remain fixed during normal inference.
 
 New events can be accepted quickly by the small updater. Deep interpretation still takes compute. A forward pass already in progress cannot retroactively consume a new event; the next supported boundary consumes it and may revise unfinished reasoning. Inserting fresh evidence may invalidate cached computation, so cache reuse needs explicit rules.
 
@@ -128,18 +129,29 @@ New events can be accepted quickly by the small updater. Deep interpretation sti
 
 - Tag observations, actions, predictions, and slow outputs with source sequence/version metadata.
 - Adopt guidance only when its assumptions remain compatible with the current state and intervening actions. An older output may still be useful; age alone is not a complete validity test.
+- When new evidence invalidates a packet's assumption, withdraw that entire guidance packet and publish a coherent replacement. The initial prototype does not retain individual items from an invalidated packet. The consumer waits where replacement guidance is required while slow reasoning continues. This packet-level invalidation policy was confirmed on 25 October 2026.
 - Keep confirmed facts separate from speculative futures. Observation correction takes priority.
 - Continue, adopt guidance, and wait are separate decisions. The gate does not merely choose which model runs.
-- Pause at unresolved prerequisites, unexpected transitions, large prediction errors, or uncertainty requiring deeper reasoning.
+- Pause executor actions at unresolved prerequisites, unexpected transitions, large prediction errors, or uncertainty requiring deeper reasoning; the slow path continues computing.
 - Protect fast-path compute and memory bandwidth. Asynchronous scheduling alone does not guarantee low latency on a shared accelerator.
 
 ## Open implementation choices
 
-- Backbone: compare editable dense VLMs, hybrid recurrent VLMs, and GUI-specialized checkpoints. Qwen3-VL-8B, Qwen3.5-9B, and UI-TARS-1.5-7B were examples considered, not a final selection or current leaderboard claim.
+- Qwen3.8-27B is selected for the first slow-path experiment. The final encoder/core/decoder split, adapter scope and training schedule require profiling and controlled comparisons. Native hosted results do not validate a latent adaptation.
 - Fast module: a few reused/shared VLM blocks versus a narrower custom recurrent controller. Reused late blocks need appropriate input adaptation and training; their original inputs were already deeply processed.
 - Degree of parameter sharing, latent widths, memory capacity, and prediction representation.
-- Screenshot-only versus accessibility-assisted observation contract. Evaluate methods under the same contract.
+- Later live observations use screenshots and available UI/accessibility text. Keep all comparisons under the same declared observation contract; the current structured-snapshot suite remains separate.
 - Text entry mechanism, confidence calibration, compatibility checks, and observation readiness policy.
 - GPU layout, scheduling, cycle boundaries, and model serving implementation.
 
 See the [implementation plan](implementation-plan.md) and [research map](research.md).
+
+## Computation and cost
+
+A hard workflow contains decisions of different difficulty. Goal interpretation, path selection, and grounded execution are responsibilities, not a fixed ranking of difficulty. The model should reuse a deeper decision across multiple routine actions, escalating or waiting when current evidence no longer supports that guidance.
+
+Expected savings come from compact task state, bounded recent context, reuse of guidance and useful intermediate representations, and fewer expensive action-blocking passes. Asynchronous overlap hides some latency; it does not itself reduce FLOPs. Continuous slow cycles, visual encoding, memory updates, retrieval, candidate prediction, synchronization and recovery all count toward the task budget.
+
+Memory across events and recurrence within a reasoning cycle are distinct. Additional latent depth adds computation; not generating prose thinking does not make deliberation free. Bounded state can limit routine history-processing costs, but cannot guarantee perfect recall or constant total episode cost. The episode log and exact records may grow while the routinely processed window stays bounded.
+
+The efficiency target is a measured improvement over strong baselines, including specialized small VLMs and optimized systems using caching, external state and batched actions. Initial easy/medium difficulty is a declared task distribution, not an after-the-fact selection of whichever tasks the proposal solves.

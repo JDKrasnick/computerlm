@@ -26,6 +26,20 @@ Checkpoint examples are not a final selection or a claim of current leaderboard 
 
 ## Research claim to investigate
 
-Fast/slow execution, recurrent memory, streaming perception, and action-conditioned world models each have prior work. The hypothesis here is that a jointly trained combination with live belief updates, short predictive preparation, and progress-dependent synchronization improves computer-use completion time at matched success.
+For the public evaluation design and scope limits, see the [implementation plan](implementation-plan.md). Detailed development contracts and results are not included in this documentation publication.
+
+Fast/slow execution, recurrent memory, streaming perception, and action-conditioned world models each have prior work. The hypothesis here is that a jointly trained combination with live belief updates, short predictive preparation, and progress-dependent synchronization improves computer-use completion time and total compute/cost at comparable success on declared easy/medium workflows.
 
 Test whether prediction improves over an equally asynchronous fast/slow baseline. Test whether memory preserves constraints and supports recovery. Do not infer causal understanding from plausible predictions alone; evaluate changed layouts, hidden prerequisites, alternative actions, and unfamiliar workflows.
+
+## Efficiency and continuity references
+
+- [Scaling Transformer to 1M tokens and beyond with RMT](https://arxiv.org/abs/2304.11062): recurrence across input segments can extend retained context with linear compute scaling. This supports the memory approach, not a measured GUI speedup.
+- [Retentive Network](https://arxiv.org/abs/2307.08621): context-length-independent recurrent inference in its own architecture. This is not a complexity guarantee for ComputerLM's modified Qwen implementation.
+- [ShowUI](https://arxiv.org/abs/2411.17465): small specialized visual-action models are relevant execution baselines; lightweight GUI modeling is established prior work.
+- [OSWorld-Human](https://arxiv.org/abs/2506.16042): evaluates latency and unnecessary actions in computer-use systems.
+- [CUA-Speedrun](https://arxiv.org/abs/2609.40284): standardized task time, verifier scores and model costs. Partial-credit scores and exact completion must remain distinct.
+- [PASTE](https://arxiv.org/abs/2603.18897): overlaps speculative tool execution and generation. Tool-serving gains motivate overlap but do not prove a GUI policy's prediction accuracy or safety.
+- [Task-State Representation](https://arxiv.org/abs/2607.00502): externally maintained task state can improve long workflows, with conditional benefits and additional overhead. Evidence for state management does not prove that learned recurrence is the best implementation.
+
+The specific combination and its measured contribution must be assessed against prior art and controlled baselines. No novelty or superiority claim follows from combining individually established mechanisms.
