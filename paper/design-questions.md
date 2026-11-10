@@ -1,13 +1,15 @@
 # Design questions
 
-This is the expanded working decision register for the ComputerLM proposal. Questions remain open until discussed or resolved through development evidence. Options are candidates, not commitments. Q1-Q8 were introduced in the expanded proposal; the three-page Draft 0.8 groups them more compactly and retains this register for detail.
+This is the expanded working decision register for the ComputerLM proposal. Questions remain open until discussed or resolved through development evidence. Options are candidates, not commitments. Q1-Q8 were introduced in the expanded proposal; the three-page Draft 0.9 groups them more compactly and retains this register for detail.
 
 The [interface literature review](interface-literature-review.md) expands the twelve interfaces discussed in conversation, with published precedents, recommended starting points, and specific comparisons. Its recommendations remain candidates until accepted or supported by development evidence.
 
 ## Confirmed decisions
 
 - Target easy and medium workflows in a balanced browser and desktop suite.
+- Aim to match the strongest available GUI computer-use agents, selected when the evaluation protocol is frozen. Keep a same-backbone sequential baseline as an architectural control, not the only performance target.
 - Observe screenshots plus available accessibility/UI text under a common baseline contract.
+- Use human-style GUI actions initially: clicking, typing, scrolling, dragging, and keyboard shortcuts. Do not add privileged shell, direct-file, DOM automation, or application-API action channels to the initial actor interface. Backend input injection is an implementation of those GUI actions, not permission for arbitrary code execution.
 - Match verified task accuracy first, improve complete-task speed as the primary objective, and reduce total inference cost as the secondary objective. Capability is not traded away merely to minimize cost.
 - Build a small custom recurrent fast controller trained to use slow-path guidance.
 - Both paths observe the screen/UI. Only the fast path issues executable UI actions; the slow path supplies guidance to the fast path and has no direct UI actuation route.
@@ -22,10 +24,16 @@ The [interface literature review](interface-literature-review.md) expands the tw
 - Place action-conditioned prediction in the fast path. Slow reasoning advises execution and does not own executable control or the predictor.
 - Treat immediate highest-scoring executable action selection versus learned deferral for further computation or updated slow guidance as a central autonomy ablation. Keep continuous slow reasoning in both conditions.
 - Prefer local inference. Keep the one-GPU initial target while investigating fit and scheduling on the chosen local hardware; local full-model training is not assumed.
+- Prefer an Apple-Silicon-class local deployment envelope: compact model/state and realistic unified-memory requirements. Exact capacity, quantization, and checkpoint remain development questions; the earlier 27B direction is not a mandatory minimum. Do not expand the proposal into a particular serving stack at this stage.
+- The initial task condition is one instruction through completion. Live steering is a future extension: feed new user information through the slow update interface, revise goal state, and propagate compatible guidance to fast control. Do not assume the adapter alone establishes coherent steering behaviour.
+- Leave training hardware, GPU-hour budget, and collection budget unspecified for now.
 - Slow guidance should communicate subgoals and dependencies in latent space, with fast control responsible for grounding them into execution. Guidance encoder capacity and fusion remain ablations.
 - Prefer action embeddings from fast to slow, covering actual action type and arguments. These do not encode all possible environment states. Retain exact payloads and execution evidence where needed; structured action inputs are the fallback if embeddings lose essential information.
 
 ## Latest discussion: interfaces still to resolve
+
+- Arbitrary-text clarification: entering a supplied value is different from composing new content. A proposed starting division is that slow reasoning prepares content when needed and fast control inserts the exact payload. This is a recommendation awaiting discussion, not a selected text-decoder architecture.
+- Strongest-agent reference comparisons must use the same declared GUI actions and observations. Hosted frontier hardware can differ from local deployment; disclose serving/network/resource differences and reserve matched-hardware attribution for controlled local baselines.
 
 - Fast-to-slow learned latent feedback is optional, not a required edge. Investigate screen observations alone, observations plus execution records, observations plus fast-state latents, and all three. The existing proposal's exact-value/evidence access does not establish that both feedback channels must be consumed at runtime.
 - Keep guidance fusion as an ablation: concatenation/gating versus attention, with capacity and cost recorded.
