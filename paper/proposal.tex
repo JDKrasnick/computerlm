@@ -21,7 +21,7 @@
 \titlespacing*{\subsection}{0pt}{7pt}{3pt}
 \pagestyle{fancy}\fancyhf{}
 \fancyhead[L]{\small\color{ink}ComputerLM}
-\fancyhead[R]{\small Research proposal / Draft 0.9}
+\fancyhead[R]{\small Research proposal / Draft 0.10}
 \fancyfoot[L]{\footnotesize J.D. Krasnick}
 \fancyfoot[R]{\footnotesize\thepage}
 \setlength{\headheight}{14pt}
@@ -62,9 +62,42 @@ Many workflows contain a planning decision followed by routine interactions. Com
 
 \textbf{Perception and state.} Begin with native VLM screen encoding plus available accessibility/UI text. Cache identical encoder inputs under matching settings; fully encode changed screens. Recurrent state survives interactions and pause/resume, then resets between unrelated tasks. Preserve exact instructions, text payloads, action acknowledgements, and evidence references alongside compressed state. Action embeddings report operations and arguments; they do not represent every possible environment state.
 
+\textbf{Expected savings.} Reused decisions and maintained state aim to reduce repeated work; concurrency separately hides useful reasoning behind UI activity. Prediction helps only if preparation saves more work than it adds. Continuous slow reasoning can erase compute savings, so compare it with intermittent-slow control as well as a sequential baseline.
+
+\clearpage
+\section{How the components work together}
+The \textbf{goal} specifies the desired result and constraints. The \textbf{state} tracks what is observed, pending, completed, or uncertain. An \textbf{action} uses both. These responsibilities do not require named latent dimensions or a fixed symbolic plan. Both paths retain access to the original instruction and exact values.
+
+\begin{tabularx}{\linewidth}{@{}>{\bfseries}p{0.22\linewidth}p{0.17\linewidth}X@{}}
+\toprule
+Representation & Owner & Purpose \\
+\midrule
+Live UI belief & Fast path & Reconcile observations, issued actions, and pending effects. \\
+Reasoning memory & Slow path & Retain intermediate understanding and unresolved dependencies. \\
+Predicted futures & Fast path & Prepare bounded action-conditioned expectations, distinct from observed facts. \\
+Subgoal guidance & Slow to fast & Communicate useful direction through the trained latent interface. \\
+Exact records & Inputs/connector & Preserve text, execution status, and retrievable evidence. \\
+\bottomrule
+\end{tabularx}
+
+\textbf{Two forms of recurrence.} Across interactions, learned state carries understanding into the next observation update. Within slow reasoning, shared blocks repeatedly refine a continuous representation without requiring written thinking tokens. The first aims to avoid rebuilding task understanding; the second spends computation on deliberation. State changes during a task while model weights remain fixed. Bounded recent context and access to older episode evidence complement the latent memory.
+
+\subsection{Example: attach a receipt and submit a report}
+\begin{enumerate}
+\item Slow reasoning supplies the subgoal of attaching the receipt. Fast control grounds it into file selection and upload actions using current observations and the exact filename.
+\item The connector reports that Upload was issued. State marks the attachment pending; a successful tool call does not establish that the report contains it.
+\item While the application responds, fast prediction prepares likely next-state features. Slow reasoning continues through remaining requirements without waiting for a new action request.
+\item A validation error updates the observed state and corrects the prepared future. Guidance depending on successful attachment is withdrawn; execution uses compatible direction or defers while slow reasoning revises it.
+\item A later observation confirms the attachment. Progress advances, and fast control continues toward submission using current evidence.
+\end{enumerate}
+
+\textbf{Prediction is built into fast control.} Before action selection, it can compare likely consequences of bounded candidates. After dispatch, it prepares the next decision while the UI changes. Predict compact features, not mandatory future screenshots. Actual observations correct predictions before dependent actions proceed; unbounded search is outside the initial scope.
+
+\textbf{Guidance has a lifetime.} Associate guidance with source observations and action history, checking whether its assumptions still apply. Age alone is insufficient: older direction may remain useful, while fresh direction can conflict with new evidence. Withdraw an incompatible packet and publish a coherent replacement. A publication or executor wait does not stop slow reasoning; explicit pause, cancellation, or completion does. Compatibility checks and their training remain experimental.
+
 \clearpage
 \section{Design rationale and development}
-Recurrent Memory Transformer carries learned memory between input segments~\cite{rmt}. Fast-in-Slow and DuoCore-FS provide robotics precedents for fast/slow cooperation and asynchronous latent guidance~\cite{fastinslow,duocore}. In GUI research, iSHIFT conditionally requests more visual processing after latent deliberation~\cite{ishift}; GUI-JEPA studies lightweight latent action scoring~\cite{guijepa}. These support components, not the complete architecture. Native VLM perception has a detailed precedent in Qwen2.5-VL~\cite{qwenvision}.
+Recurrent Memory Transformer carries learned memory between input segments~\cite{rmt}. Fast-in-Slow and DuoCore-FS provide robotics precedents for fast/slow cooperation and asynchronous latent guidance~\cite{fastinslow,duocore}. In GUI research, iSHIFT conditionally requests more visual processing after latent deliberation~\cite{ishift}; GUI-JEPA studies lightweight latent action scoring~\cite{guijepa}. CUWM studies action-conditioned UI prediction for action search~\cite{cuwm}. These support components, not the complete architecture. Native VLM perception has a detailed precedent in Qwen2.5-VL~\cite{qwenvision}.
 
 \textbf{Fresh evidence.} Screens become available to both paths immediately. Compare next-cycle intake with trained early/middle/late adapters, preserving state and measuring reaction delay and recovery. Initial episodes follow one instruction; later live steering can revise goal state through the slow update interface and propagate revised guidance.
 
@@ -77,7 +110,7 @@ Training hardware and compute/data budgets remain unspecified. Begin with a smal
 \begin{enumerate}
 \item \textbf{Preserve pretrained capability.} Establish one-pass parity and stable recurrent adaptation. Initially retain native perception; select frozen weights, adapters, and recurrent depth from development evidence.
 \item \textbf{Learn execution and guidance together.} Train the controller and latent interface on chronological screen--action--outcome sequences. Include persistent memory, exact text access, failed actions, recovery, and delayed or missing guidance.
-\item \textbf{Add prediction and adaptive computation.} Supervise fast predictions with actual transitions; train and compare action/deferral policies. Collect learner failures for refinement, considering RL after useful supervised behaviour is established.
+\item \textbf{Refine prediction and adaptive computation.} The fast predictor is part of the architecture from the outset. Supervise it with actual transitions and compare action/deferral policies. Collect learner failures for refinement, considering RL after useful supervised behaviour is established.
 \end{enumerate}
 Training uses only information available at each decision. Keep held-out outputs and corrections outside training. Memory across observations and repeated internal reasoning depth are separate: the latter adds computation even when no thinking text is generated.
 
@@ -100,7 +133,7 @@ Qualitative grading follows the repository contract: ChatGPT through the signed-
 \item \textbf{Training and runtime:} data budget, trainable components, recurrent training windows, local hardware fit, and scheduling policy.
 \end{itemize}
 
-\textbf{Contribution and limits.} The contribution sought is evidence that this integration improves practical computer-use speed while preserving success, with cost measured independently. The main risks are stale guidance, lost constraints, incorrect predictions, and continuous slow computation erasing the savings. Detailed alternatives and decision records remain in \texttt{paper/design-questions.md}.
+\textbf{Contribution and limits.} Seek evidence that the learned integration improves task speed while preserving success, with cost measured independently. The intended deliverable is trained weights, a recurrent/asynchronous runtime, and a computer connector. Stale guidance, lost constraints, prediction errors, and slow-path overhead are the main risks. Detailed decisions remain in \texttt{paper/design-questions.md}.
 
 \section*{References}
 \begingroup\small\raggedright
@@ -114,5 +147,6 @@ Qualitative grading follows the repository contract: ChatGPT through the signed-
 \bibitem{guijepa} B. Wang et al. \emph{GUI-JEPA: Candidate-Conditioned JEPA Latents as a Fast Action Policy for Mobile GUI Agents}. Research report, 2026. \href{https://arxiv.org/abs/2610.36877}{arXiv:2610.36877}.
 \bibitem{qwenvision} Qwen Team. \emph{Qwen2.5-VL Technical Report}. 2025. \href{https://arxiv.org/abs/2502.13923}{arXiv:2502.13923}.
 \bibitem{speedrun} P. Aggarwal et al. \emph{cua-speedrun: Standardized Benchmarking of the Speed of Computer-Use Agents}. 2026. \href{https://arxiv.org/abs/2609.40284}{arXiv:2609.40284}.
+\bibitem{cuwm} Y. Guan et al. \emph{Computer-Using World Model}. Research report, 2026. \href{https://arxiv.org/abs/2602.17365}{arXiv:2602.17365}.
 \end{thebibliography}\endgroup
 \end{document}
