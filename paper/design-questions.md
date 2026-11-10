@@ -1,6 +1,6 @@
 # Design questions
 
-This is the expanded working decision register for the ComputerLM proposal. Questions remain open until discussed or resolved through development evidence. Options are candidates, not commitments. Q1-Q8 were introduced in the expanded proposal; the three-page Draft 0.9 groups them more compactly and retains this register for detail.
+This is the expanded working decision register for the ComputerLM proposal. Questions remain open until discussed or resolved through development evidence. Options are candidates, not commitments. Q1-Q8 were introduced in the expanded proposal; four-page Draft 0.10 groups them more compactly and retains this register for detail.
 
 The [interface literature review](interface-literature-review.md) expands the twelve interfaces discussed in conversation, with published precedents, recommended starting points, and specific comparisons. Its recommendations remain candidates until accepted or supported by development evidence.
 
