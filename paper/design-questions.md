@@ -1,6 +1,16 @@
 # Design questions
 
-This is the expanded working decision register for the ComputerLM proposal. Questions remain open until discussed or resolved through development evidence. Options are candidates, not commitments. Q1-Q8 were introduced in the expanded proposal; four-page Draft 0.10 groups them more compactly and retains this register for detail.
+This is the expanded working decision register for the ComputerLM proposal. Questions remain open until discussed or resolved through development evidence. Options are candidates, not commitments. Q1-Q8 were introduced in the expanded proposal; four-page Draft 0.12 groups them more compactly and retains this register for detail.
+
+## Discussion alignment, 15 November 2026
+
+The published blog's three motivations remain sequential waiting, expensive routine inference, and reconstructing progress from growing history. The proposal develops these into asynchronous fast/slow execution, reusable latent guidance, and persistent task state. Predictions and efficiency gains remain research hypotheses.
+
+- Faster task completion shortens the lifetime of continuous slow computation. Compare total work over the whole task, accounting for average work rate as well as duration; continuous reasoning does not inherently preclude compute savings. Local dollar cost and physical computation are separate measurements.
+- Approximately 30B is a working scale discussed by the user, not a frozen checkpoint or a claim about Terra's undisclosed size. Preserve the Apple-Silicon-class deployment objective without assuming fit or comparative latency.
+- No new intelligence component is selected. Investigate whether guidance compression, memory compression, or controller grounding limits access to the slow path's capability. Preserve exact evidence/retrieval access; guidance is not required to contain only coarse subgoals. Detailed conditioning and deferral remain experiments.
+- Provisional decision, 15 November: slow reasoning composes new text and makes deliberative decisions; fast control handles routine execution and inserts the exact text. Slow owns task completion, stalls, and requests for help. Fast remains the sole GUI actuation path. This responsibility split may be revised later.
+- Success thresholds remain TBD and are deferred for now. The objective remains comparable accuracy with faster completion and lower inference cost. Model widths, fusion, latent capacity, intake sites, and predictor horizons remain development experiments; freeze evaluation thresholds before held-out runs.
 
 The [interface literature review](interface-literature-review.md) expands the twelve interfaces discussed in conversation, with published precedents, recommended starting points, and specific comparisons. Its recommendations remain candidates until accepted or supported by development evidence.
 
@@ -32,13 +42,13 @@ The [interface literature review](interface-literature-review.md) expands the tw
 
 ## Latest discussion: interfaces still to resolve
 
-- Arbitrary-text clarification: entering a supplied value is different from composing new content. A proposed starting division is that slow reasoning prepares content when needed and fast control inserts the exact payload. This is a recommendation awaiting discussion, not a selected text-decoder architecture.
+- Arbitrary-text decision, 15 November: slow reasoning composes new content; fast control inserts the exact payload and can copy supplied values. Deliberative decisions also belong to slow reasoning. This division is provisional; it does not select the text decoder or payload interface. Completion, stall, and help reporting belong to slow reasoning.
 - Strongest-agent reference comparisons must use the same declared GUI actions and observations. Hosted frontier hardware can differ from local deployment; disclose serving/network/resource differences and reserve matched-hardware attribution for controlled local baselines.
 
 - Fast-to-slow learned latent feedback is optional, not a required edge. Investigate screen observations alone, observations plus execution records, observations plus fast-state latents, and all three. The existing proposal's exact-value/evidence access does not establish that both feedback channels must be consumed at runtime.
 - Keep guidance fusion as an ablation: concatenation/gating versus attention, with capacity and cost recorded.
 - Clarify recurrence by state lifetime: existing recurrent LLM machinery may be reused, but shared-block iteration within one inference does not by itself preserve task state between observations. No separate bespoke memory module is selected.
-- Immediate observation delivery and fast-only prediction are now selected. Resolve the implementation of continuous intake, compatibility of fast actions with slow guidance, waiting/termination ownership, training scope, screen encoding, and the one-GPU compute schedule through targeted development comparisons. Keep Q1-Q8 as the broader experiment register below.
+- Immediate observation delivery and fast-only prediction are now selected. Resolve the implementation of continuous intake, compatibility of fast actions with slow guidance, waiting/termination implementation under slow reporting ownership, training scope, screen encoding, and the one-GPU compute schedule through targeted development comparisons. Keep Q1-Q8 as the broader experiment register below.
 - The [perception, training, and runtime review](perception-training-runtime-review.md) surveys current published screen encoders, closer GUI comparisons, a staged training proposal, and local GPU options. It is a research recommendation, not evidence that training or runtime fit has been established.
 - New intake candidates: fresh evidence at the next recurrent cycle, or a learned adapter at early/middle/late block boundaries. Both preserve task state and may be combined. Compare fixed insertion sites before learned routing.
 - Tentative feedback direction: send actual fast-path actions to slow reasoning as they are issued. Discrete/structured versus latent encoding remains open; this does not require the full fast hidden state.

@@ -21,14 +21,14 @@
 \titlespacing*{\subsection}{0pt}{7pt}{3pt}
 \pagestyle{fancy}\fancyhf{}
 \fancyhead[L]{\small\color{ink}ComputerLM}
-\fancyhead[R]{\small Research proposal / Draft 0.10}
+\fancyhead[R]{\small Research proposal / Draft 0.12}
 \fancyfoot[L]{\footnotesize J.D. Krasnick}
 \fancyfoot[R]{\footnotesize\thepage}
 \setlength{\headheight}{14pt}
 \renewcommand{\headrulewidth}{0.3pt}
 \begin{document}
 \thispagestyle{empty}
-{\small\bfseries\color{accent}RESEARCH PROPOSAL\hfill 10 NOVEMBER 2026}
+{\small\bfseries\color{accent}RESEARCH PROPOSAL\hfill 15 NOVEMBER 2026}
 \vspace{8pt}
 
 {\LARGE\bfseries\color{ink}ComputerLM\par}
@@ -58,11 +58,11 @@ Many workflows contain a planning decision followed by routine interactions. Com
 
 \textbf{Fast path.} A custom recurrent controller combines fresh visual features, action history, persistent state, and slow guidance. Only this path executes human-style GUI actions: clicking, typing, scrolling, dragging, keyboard shortcuts, or waits. The initial interface excludes shell, direct-file, DOM, and API shortcuts. Fast control predicts bounded action consequences; actual observations establish their effects.
 
-\textbf{Slow path.} Adapt a suitably sized pretrained VLM into an input encoder, shared recurrent middle blocks, and guidance readout. It reasons continuously during an active task, including while fast control acts or waits. Guidance expresses dependencies such as \emph{find X to obtain Y} in latent space. A trained interface makes those vectors useful to the controller; slow reasoning cannot directly act on the computer. The checkpoint and size remain open.
+\textbf{Slow path.} Adapt a pretrained VLM into an input encoder, shared recurrent middle blocks, and guidance readout. It reasons continuously while fast control acts or waits. Slow reasoning composes new text, handles deliberative decisions, and owns completion, stall, and help reporting. Fast control inserts exact text and executes the resulting GUI actions. Learned latent guidance communicates subgoals and dependencies; exact text remains separately accessible. Slow reasoning has no direct UI actuation. This division is provisional; checkpoint and size remain open.
 
 \textbf{Perception and state.} Begin with native VLM screen encoding plus available accessibility/UI text. Cache identical encoder inputs under matching settings; fully encode changed screens. Recurrent state survives interactions and pause/resume, then resets between unrelated tasks. Preserve exact instructions, text payloads, action acknowledgements, and evidence references alongside compressed state. Action embeddings report operations and arguments; they do not represent every possible environment state.
 
-\textbf{Expected savings.} Reused decisions and maintained state aim to reduce repeated work; concurrency separately hides useful reasoning behind UI activity. Prediction helps only if preparation saves more work than it adds. Continuous slow reasoning can erase compute savings, so compare it with intermittent-slow control as well as a sequential baseline.
+\textbf{Expected savings.} Reused guidance and maintained state aim to reduce repeated work; concurrency overlaps reasoning with UI activity. Faster completion also shortens continuous slow computation. Total savings depend on work rate and task duration, including prediction and recovery. Compare continuous with intermittent slow reasoning and a sequential baseline.
 
 \clearpage
 \section{How the components work together}
@@ -125,7 +125,7 @@ Use a balanced browser/desktop suite with fixed easy/medium criteria. Select the
 
 Qualitative grading follows the repository contract: ChatGPT through the signed-in Codex CLI, after each episode. Judge latency is separate, judge failure stops the batch, and favourable qualitative scores cannot override a failed exact outcome check.
 
-\textbf{Open decisions.} Text-composition responsibility and completion/stall reporting remain behaviour choices. Development experiments address:
+\textbf{Design decisions.} The slow/fast responsibility split is provisional. Success thresholds remain TBD. Development experiments address:
 \begin{itemize}
 \item \textbf{Intake and memory:} cycle length, adapter location, state capacity, and exact-record access.
 \item \textbf{Learned interfaces:} guidance capacity, fusion, publication/compatibility checks, and whether action embeddings retain all required arguments.
@@ -133,7 +133,7 @@ Qualitative grading follows the repository contract: ChatGPT through the signed-
 \item \textbf{Training and runtime:} data budget, trainable components, recurrent training windows, local hardware fit, and scheduling policy.
 \end{itemize}
 
-\textbf{Contribution and limits.} Seek evidence that the learned integration improves task speed while preserving success, with cost measured independently. The intended deliverable is trained weights, a recurrent/asynchronous runtime, and a computer connector. Stale guidance, lost constraints, prediction errors, and slow-path overhead are the main risks. Detailed decisions remain in \texttt{paper/design-questions.md}.
+\textbf{Contribution and limits.} Deliver trained weights, a recurrent/asynchronous runtime, and a connector. Test memory, guidance, and controller grounding bottlenecks before attributing failures to backbone size. Stale guidance, prediction errors, and slow overhead remain risks. Details: \texttt{paper/design-questions.md}.
 
 \section*{References}
 \begingroup\small\raggedright
