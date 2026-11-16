@@ -1,25 +1,26 @@
 # ComputerLM
 
-Research proposal for a stateful, predictive computer-use model with asynchronous fast and slow computation paths.
+Research and implementation work toward fast, efficient computer use through persistent learned task state, action-conditioned prediction, and asynchronous fast and slow computation paths.
 
-**V1 goal:** complete easy and medium computer tasks faster while maintaining task success. Optimize end-to-end completion time at a matched success rate; background reasoning and total FLOPs are secondary to action latency.
+**Target:** complete easy and medium workflows faster and more cheaply at comparable task success. Pure accuracy, parameter count, token throughput and price per token do not individually measure this objective.
 
-**Status:** architecture and research handoff, agreed through 21 October 2026. No model implementation, trained weights, or validated performance claims yet.
+**Status:** research proposal and early development. The full integrated architecture has not been trained or validated. Development includes evaluation infrastructure and a cache-free recurrent text-core prototype; neither demonstrates the proposed model's end-to-end speed, cost or reliability gains. This public snapshot publishes the design; additional implementation work remains in progress and is not bundled into this documentation update.
 
-## Start here
+## Read the proposal
 
-- [V1 architecture](docs/architecture-v1.md): components, state ownership, action loop, recurrence, and synchronization.
-- [Implementation and evaluation plan](docs/implementation-plan.md): build sequence, training stages, and success criteria.
-- [Research map](docs/research.md): primary sources, relevant mechanisms, and limits of the evidence.
+- [Research proposal](docs/research-proposal.md): motivation, intended behavior, efficiency hypothesis and scope.
+- [Detailed architecture](docs/architecture-v1.md): fast/slow paths, action execution, recurrent memory, prediction and synchronization.
+- [Implementation and evaluation plan](docs/implementation-plan.md): curriculum, controls, measurement and remaining milestones.
+- [Research map](docs/research.md): primary sources and limits of transfer to this proposal.
 
 ## Core idea
 
-A small recurrent path observes the UI, maintains live state, predicts short action consequences, and selects structured actions. A large VLM reasons asynchronously using persistent working memory, supplying compact guidance without blocking every interaction. Actual observations correct predictions; incompatible guidance is discarded or revised.
+A lightweight recurrent path observes the interface, maintains live task state, predicts short action consequences and selects actions. A deeper path reasons throughout the active task and supplies learned compact guidance that can support several interactions. Actual observations correct predictions; outdated assumptions invalidate affected guidance.
 
-The paths are intended to be trained as an integrated model with learned interfaces and potentially shared parameters. The exact backbone and degree of parameter sharing remain open. The slow backbone can retain pretrained transformer layers while adding recurrence across interaction cycles.
+Persistent state carries useful understanding between interactions, with explicit exact values and evidence alongside learned memory. Bounded recent context and retrieval avoid replaying the whole history at every update. Task memory survives pause/resume and resets for unrelated tasks; the same model can perform different tasks.
+
+Lower computation is an explicit goal. Reusing deeper decisions across inexpensive actions and reducing repeated history processing are intended savings mechanisms. Concurrent execution separately reduces waiting. Both paths and all overhead must be counted when testing whether the full system is cheaper.
 
 ## Earlier visual briefs
 
-Open [architecture-decisions.html](architecture-decisions.html) or [index.html](index.html) in a browser for the original visual explorations. These predate the agreed stateful fast/slow v1 and contain alternatives that are not current decisions. **The architecture document above takes precedence.** [PRODUCT.md](PRODUCT.md), [DESIGN.md](DESIGN.md), and `.impeccable/design.json` describe those visual artifacts.
-
-No build step is required to read the documentation or open the HTML briefs.
+[architecture-decisions.html](architecture-decisions.html) and [index.html](index.html) are historical visual explorations. They contain alternatives superseded by the proposal linked above. [PRODUCT.md](PRODUCT.md) and [DESIGN.md](DESIGN.md) describe those earlier surfaces. No build step is needed to read the documents or open the HTML.
